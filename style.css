@@ -1,35 +1,41 @@
 *, *::before, *::after {
     box-sizing: border-box;
     font-family: Gotham Rounded;
-  }
+}
 
-  :root {
-      --hue-neutral: 200;
-      --hue-wrong: 0;
-      --hue-correct:145;
-  }
-  
-body {
+:root {
+    --hue-neutral: 200;
+    --hue-wrong: 0;
+    --hue-correct: 145;
+}
+
+header {
+    padding: 15px;
+    margin: 0;
+    text-align: center;
+    background-color:#1E90FF;
+    color: white;
+}
+
+.col-md-1 {
+    font-family: Gotham Rounded;
+    font-size: 30px;
+    font-weight: bold;
+}
+
+main {
     --hue: var(--hue-neutral);
     padding: 0;
     margin: 0;
     display: flex;
-    width: 100vw;
+    width: 100%;
     height: 100vh;
     justify-content: center;
     align-items: center;
     background-color: hsl(var(--hue), 100%, 20%);
 }
 
-body.correct {
-    --hue: var(--hue-correct);
-}
-
-body.wrong {
-    --hue: var(--hue-wrong);
-}
-
-.container {
+.container2 {
     width: 800px;
     max-width: 80%;
     background-color: white;
@@ -85,4 +91,4 @@ body.wrong {
 
 .hide {
     display: none;
-}
+};

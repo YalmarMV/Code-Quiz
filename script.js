@@ -3,6 +3,10 @@ const nextButton = document.getElementById('next-btn')
 const questionContainerElement = document.getElementById('question-container')
 const questionElement = document.getElementById('question')
 const answerButtonsElement = document.getElementById('answer-buttons')
+const timerDisplay = document.getElementById('timer')
+var gameDuration = 90;
+
+var gameTimer = setInterval(gameTime, 1000);
 
 let shuffledQuestions, currentQuestionIndex
 
@@ -12,7 +16,24 @@ nextButton.addEventListener('click', () => {
   setNextQuestion()
 })
 
+function gameTime() {
+  gameDuration --;
+  timerDisplay.textContent = gameDuration;
+  if (gameDuration <= 0) {
+    clearInterval(gameTimer);
+  }
+}
+
+function modifyTimer(timerRemoveTime) {
+  var myTimer = document.getElementById('timer');
+  clearInterval(gameTimer);
+  var gameTime = myTimer.textContent - timerRemoveTime;
+  gameDuration -= timerRemoveTime;
+  var gameTimer = setInterval(gameTime, 1000);
+}
+
 function startGame() {
+  modifyTimer(50);
   startButton.classList.add('hide')
   shuffledQuestions = questions.sort(() => Math.random() - .5)
   currentQuestionIndex = 0
