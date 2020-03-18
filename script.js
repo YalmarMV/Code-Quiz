@@ -1,164 +1,174 @@
-const startButton = document.getElementById('start-btn')
-const nextButton = document.getElementById('next-btn')
-const questionContainerElement = document.getElementById('question-container')
-const questionElement = document.getElementById('question')
-const answerButtonsElement = document.getElementById('answer-buttons')
-const timerDisplay = document.getElementById('timer')
-var gameDuration = 90;
+// select all elements
+const start = document.getElementById("start");
+const quiz = document.getElementById("quiz");
+const question = document.getElementById("question");
+const qImg = document.getElementById("qImg");
+const choiceA = document.getElementById("A");
+const choiceB = document.getElementById("B");
+const choiceC = document.getElementById("C");
+const counter = document.getElementById("counter");
+const timeGauge = document.getElementById("timeGauge");
+const progress = document.getElementById("progress");
+const scoreDiv = document.getElementById("scoreContainer");
 
-var gameTimer = setInterval(gameTime, 1000);
-
-let shuffledQuestions, currentQuestionIndex
-
-startButton.addEventListener('click', startGame)
-nextButton.addEventListener('click', () => {
-  currentQuestionIndex++
-  setNextQuestion()
-})
-
-function gameTime() {
-  gameDuration --;
-  timerDisplay.textContent = gameDuration;
-  if (gameDuration <= 0) {
-    clearInterval(gameTimer);
-  }
-}
-
-function modifyTimer(timerRemoveTime) {
-  var myTimer = document.getElementById('timer');
-  clearInterval(gameTimer);
-  var gameTime = myTimer.textContent - timerRemoveTime;
-  gameDuration -= timerRemoveTime;
-  var gameTimer = setInterval(gameTime, 1000);
-}
-
-function startGame() {
-  modifyTimer(50);
-  startButton.classList.add('hide')
-  shuffledQuestions = questions.sort(() => Math.random() - .5)
-  currentQuestionIndex = 0
-  questionContainerElement.classList.remove('hide')
-  setNextQuestion()
-}
-
-function setNextQuestion() {
-  resetState()
-  showQuestion(shuffledQuestions[currentQuestionIndex])
-}
-
-function showQuestion(question) {
-  questionElement.innerText = question.question
-  question.answers.forEach(answer => {
-    const button = document.createElement('button')
-    button.innerText = answer.text
-    button.classList.add('btn')
-    if (answer.correct) {
-      button.dataset.correct = answer.correct
+// create our questions
+let questions = [
+    {
+        question : "What does HTML stand for?",
+        imgSrc : "img/html.png",
+        choiceA : "Hyper Text Markup Language",
+        choiceB : "High Text Markup Language",
+        choiceC : "Hyper Tabular Markup Language",
+        correct : "A"
+    },{
+        question : "What does CSS stand for?",
+        imgSrc : "img/css.png",
+        choiceA : "Computer Style Sheets",
+        choiceB : "Cascading Style Sheets",
+        choiceC : "Colorful Style Sheets",
+        correct : "B"
+    },{
+        question : "What does JS stand for?",
+        imgSrc : "img/js.png",
+        choiceA : "Jet Stream",
+        choiceB : "John Scott",
+        choiceC : "Java Script",
+        correct : "C"
+    }, {
+        question : "The latest HTML standard is ___________.",
+        imgSrc : "img/html.png",
+        choiceA : "XML",
+        choiceB : "HTML 4.0",
+        choiceC : "HTML 5.0",
+        correct : "C"
+    },{
+        question : "Which HTML attribute is used to define inline styles?",
+        imgSrc : "img/css.png",
+        choiceA : "style",
+        choiceB : "font",
+        choiceC : "class",
+        correct : "A"
+    },{
+        question : "How do you call a function named 'myFunction'?",
+        imgSrc : "img/js.png",
+        choiceA : "call function myFunction()",
+        choiceB : "myFunction()",
+        choiceC : "call myFunction()",
+        correct : "B"
     }
-    button.addEventListener('click', selectAnswer)
-    answerButtonsElement.appendChild(button)
-  })
+];
+
+// create some variables
+
+const lastQuestion = questions.length - 1;
+let runningQuestion = 0;
+let count = 0;
+const questionTime = 15; // 10s
+const gaugeWidth = 150; // 150px
+const gaugeUnit = gaugeWidth / questionTime;
+let TIMER;
+let score = 0;
+
+// render a question
+function renderQuestion(){
+    let q = questions[runningQuestion];
+    
+    question.innerHTML = "<p>"+ q.question +"</p>";
+    qImg.innerHTML = "<img src="+ q.imgSrc +">";
+    choiceA.innerHTML = q.choiceA;
+    choiceB.innerHTML = q.choiceB;
+    choiceC.innerHTML = q.choiceC;
 }
 
-function resetState() {
-  clearStatusClass(document.body)
-  nextButton.classList.add('hide')
-  while (answerButtonsElement.firstChild) {
-    answerButtonsElement.removeChild(answerButtonsElement.firstChild)
-  }
+start.addEventListener("click",startQuiz);
+
+// start quiz
+function startQuiz(){
+    start.style.display = "none";
+    renderQuestion();
+    quiz.style.display = "block";
+    renderProgress();
+    renderCounter();
+    TIMER = setInterval(renderCounter,1000); // 1000ms = 1s
 }
 
-function selectAnswer(e) {
-  const selectedButton = e.target
-  const correct = selectedButton.dataset.correct
-  setStatusClass(document.body, correct)
-  Array.from(answerButtonsElement.children).forEach(button => {
-    setStatusClass(button, button.dataset.correct)
-  })
-  if (shuffledQuestions.length > currentQuestionIndex + 1) {
-    nextButton.classList.remove('hide')
-  } else {
-    startButton.innerText = 'Restart'
-    startButton.classList.remove('hide')
-  }
+// render progress
+function renderProgress(){
+    for(let qIndex = 0; qIndex <= lastQuestion; qIndex++){
+        progress.innerHTML += "<div class='prog' id="+ qIndex +"></div>";
+    }
 }
 
-function setStatusClass(element, correct) {
-  clearStatusClass(element)
-  if (correct) {
-    element.classList.add('correct')
-  } else {
-    element.classList.add('wrong')
-  }
+// counter render
+
+function renderCounter(){
+    if(count <= questionTime){
+        counter.innerHTML = count;
+        timeGauge.style.width = count * gaugeUnit + "px";
+        count++
+    }else{
+        count = 0;
+        // change progress color to red
+        answerIsWrong();
+        if(runningQuestion < lastQuestion){
+            runningQuestion++;
+            renderQuestion();
+        }else{
+            // end the quiz and show the score
+            clearInterval(TIMER);
+            scoreRender();
+        }
+    }
 }
 
-function clearStatusClass(element) {
-  element.classList.remove('correct')
-  element.classList.remove('wrong')
+// checkAnwer
+
+function checkAnswer(answer){
+    if( answer == questions[runningQuestion].correct){
+        // answer is correct
+        score++;
+        // change progress color to green
+        answerIsCorrect();
+    }else{
+        // answer is wrong
+        // change progress color to red
+        answerIsWrong();
+    }
+    count = 0;
+    if(runningQuestion < lastQuestion){
+        runningQuestion++;
+        renderQuestion();
+    }else{
+        // end the quiz and show the score
+        clearInterval(TIMER);
+        scoreRender();
+    }
 }
 
-const questions = [
-  {
-    question: 'HTML stands for?',
-    answers: [
-      { text: 'Hyper Text Markup Language', correct: true },
-      { text: 'High Text Markup Language', correct: false },
-      { text: 'Hyper Tabular Markup Language', correct: false },
-      { text: 'None of these', correct: false }
-    ]
-  },
-  {
-    question: 'Which of the following tag is used to mark a begining of paragraph?',
-    answers: [
-      { text: '<td>', correct: false },
-      { text: '<br>', correct: false },
-      { text: '<p>', correct: true },
-      { text: '<tr>', correct: false }
-    ]
-  },
-  {
-    question: 'Markup tags tell the web browser ___________.',
-    answers: [
-      { text: 'How to organise the page', correct: false },
-      { text: 'How to display the page', correct: true },
-      { text: 'How to display message box on page', correct: false },
-      { text: 'None of these', correct: false }
-    ]
-  },
-  {
-    question: 'Web pages starts with which of the following tag?',
-    answers: [
-      { text: '<body>', correct: false },
-      { text: '<title>', correct: false },
-      { text: '<!DOCTYPE html>', correct: true },
-      { text: '<form>', correct: false }
-    ]
-  },
-  {
-    question: 'The attribute, which define the relationship between current document and href URL is ___________.',
-    answers: [
-      { text: 'rel', correct: true },
-      { text: 'url', correct: false },
-      { text: 'rev', correct: false },
-      { text: 'All of these', correct: false }
-    ]
-  },
-  {
-    question: 'How can you open a link in a new browser window?',
-    answers: [
-      { text: '< a href = "url" target = "new">', correct: false },
-      { text: '<a href = "url" target= "_blank">', correct: true },
-      { text: '<a href = "url".new>', correct: false },
-      { text: '<a href = "url" target ="open">', correct: false }
-    ]
-  },
-  {
-    question: 'The latest HTML standard is ___________.',
-    answers: [
-      { text: 'XML', correct: false },
-      { text: 'SGML', correct: false },
-      { text: 'HTML 4.0', correct: false },
-      { text: 'HTML 5.0', correct: true }
-    ]
-  }
-]
+// answer is correct
+function answerIsCorrect(){
+    document.getElementById(runningQuestion).style.backgroundColor = "#0f0";
+}
+
+// answer is Wrong
+function answerIsWrong(){
+    document.getElementById(runningQuestion).style.backgroundColor = "#f00";
+}
+
+// score render
+function scoreRender(){
+    scoreDiv.style.display = "block";
+    
+    // calculate the amount of question percent answered by the user
+    const scorePerCent = Math.round(100 * score/questions.length);
+    
+    // choose the image based on the scorePerCent
+    let img = (scorePerCent >= 80) ? "img/5.png" :
+              (scorePerCent >= 60) ? "img/4.png" :
+              (scorePerCent >= 40) ? "img/3.png" :
+              (scorePerCent >= 20) ? "img/2.png" :
+              "img/1.png";
+    
+    scoreDiv.innerHTML = "<img src="+ img +">";
+    scoreDiv.innerHTML += "<p>"+ scorePerCent +"%</p>";
+}
